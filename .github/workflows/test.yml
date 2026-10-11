@@ -56,9 +56,9 @@ jobs:
     needs: ['fetch-geode-version']
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
 
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
         with:
           repository: geode-sdk/example-mod
           path: ${{ env.test-mod-path }}
@@ -95,7 +95,7 @@ jobs:
             .developer = $developer')
 
           # Write updated_mod_json variable contents to mod.json file
-          echo $updated_mod_json > $mod_json_path
+          echo "$updated_mod_json" > $mod_json_path
 
           GEODE_SDK_TYPE="given"
           if [ ${{ env.test-geode-nightly }} == true ]; then
@@ -111,6 +111,8 @@ jobs:
 
       - name: Build the mod
         uses: ./
+        env:
+          CMAKE_POLICY_VERSION_MINIMUM: "3.5"
         with:
           sdk: ${{ env.geode-sdk-type }}
           build-config: RelWithDebInfo
@@ -127,12 +129,12 @@ jobs:
     needs: ['build']
 
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@v4
 
       - uses: ./combine
         id: build
 
-      - uses: actions/upload-artifact@v7
+      - uses: actions/upload-artifact@v4
         with:
           name: Build Output
           path: ${{ steps.build.outputs.build-output }}
