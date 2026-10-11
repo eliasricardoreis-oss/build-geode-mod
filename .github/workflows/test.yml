@@ -34,7 +34,6 @@ jobs:
     runs-on: ${{ matrix.config.os }}
 
     steps:
-      # Clona o SEU repositório atual que contém o seu src/main.cpp e mod.json
       - uses: actions/checkout@v4
         with:
           path: ${{ env.test-mod-path }}
@@ -51,8 +50,6 @@ jobs:
           fi
 
           mod_json=$(cat "$mod_json_path")
-
-          # Garante que a versão do Geode no mod.json está exata para 5.11.1
           updated_mod_json=$(echo "$mod_json" | jq \
             --arg geode_version "$GEODE_VERSION" \
             '.geode = $geode_version')
@@ -61,7 +58,7 @@ jobs:
           echo "Geode version synchronized to: $GEODE_VERSION"
 
       - name: Build the mod
-        uses: geode-sdk/build-action@main
+        uses: geode-sdk/build-geode-mod@main
         env:
           CMAKE_POLICY_VERSION_MINIMUM: "3.5"
         with:
@@ -82,7 +79,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: geode-sdk/build-action/combine@main
+      - uses: geode-sdk/build-geode-mod/combine@main
         id: build
 
       - uses: actions/upload-artifact@v4
