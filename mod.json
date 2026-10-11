@@ -1,7 +1,7 @@
 {
   "geode": "3.0.0",
   "version": "1.0.0",
-  "id": "seu-nome.ai-pathfinder-bot",
+  "id": "idk.ai-pathfinder-bot",
   "name": "AI Pathfinding & Memory Bot",
   "developer": "SeuNome",
   "description": "Bot completo de pathfinding, leitura de memória, detecção de elementos e Gemini API para Geometry Dash.",
