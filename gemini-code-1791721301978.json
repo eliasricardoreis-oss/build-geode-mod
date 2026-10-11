@@ -1,0 +1,30 @@
+{
+  "geode": "3.0.0",
+  "version": "1.0.0",
+  "id": "seu-nome.ai-pathfinder-bot",
+  "name": "AI Pathfinding & Memory Bot",
+  "developer": "SeuNome",
+  "description": "Bot completo de pathfinding, leitura de memória, detecção de elementos e Gemini API para Geometry Dash.",
+  "settings": {
+    "gemini-api-key": {
+      "name": "Gemini API Key",
+      "description": "Insira sua chave da API do Gemini 2.5 Flash",
+      "type": "string",
+      "default": ""
+    },
+    "enable-bot": {
+      "name": "Ativar Bot / Pathfinding",
+      "description": "Ativa a automação de leitura de memória e tomada de decisão",
+      "type": "bool",
+      "default": false
+    },
+    "update-interval": {
+      "name": "Intervalo de Atualização (Frames)",
+      "description": "Quantos quadros esperar antes de processar dados pesados de memória (Otimização)",
+      "type": "int",
+      "default": 10,
+      "min": 1,
+      "max": 60
+    }
+  }
+}
