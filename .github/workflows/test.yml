@@ -7,7 +7,7 @@ on:
       - '**'
 
 env:
-  test-mod-path: example-mod-test
+  test-mod-path: my-mod-workspace
   forced-geode-version: "5.11.1"
 
 jobs:
@@ -34,40 +34,34 @@ jobs:
     runs-on: ${{ matrix.config.os }}
 
     steps:
-      - uses: actions/checkout@v4
-
+      # Clona o SEU repositório atual que contém o seu src/main.cpp e mod.json
       - uses: actions/checkout@v4
         with:
-          repository: geode-sdk/example-mod
           path: ${{ env.test-mod-path }}
 
-      - name: Modify Example Mod Files
+      - name: Verify/Update Mod JSON Version
         shell: bash
         run: |
           GEODE_VERSION="${{ env.forced-geode-version }}"
           mod_json_path="${{ env.test-mod-path }}/mod.json"
+          
+          if [ ! -f "$mod_json_path" ]; then
+            echo "Error: mod.json not found in repository root!"
+            exit 1
+          fi
+
           mod_json=$(cat "$mod_json_path")
 
-          # Força a versão 5.11.1 no mod.json do projeto
+          # Garante que a versão do Geode no mod.json está exata para 5.11.1
           updated_mod_json=$(echo "$mod_json" | jq \
             --arg geode_version "$GEODE_VERSION" \
-            --arg mod_id "seu-nome.ai-pathfinder-bot" \
-            --arg mod_name "AI Pathfinding Bot" \
-            --arg mod_version "1.0.0" \
-            --arg mod_description "Bot de pathfinding com Geode e Gemini API" \
-            --arg developer "SeuNome" \
-            '.geode = $geode_version |
-            .id = $mod_id |
-            .name = $mod_name |
-            .version = $mod_version |
-            .description = $mod_description |
-            .developer = $developer')
+            '.geode = $geode_version')
 
           echo "$updated_mod_json" > "$mod_json_path"
-          echo "Forced Geode Version set to: $GEODE_VERSION"
+          echo "Geode version synchronized to: $GEODE_VERSION"
 
       - name: Build the mod
-        uses: ./
+        uses: geode-sdk/build-action@main
         env:
           CMAKE_POLICY_VERSION_MINIMUM: "3.5"
         with:
@@ -88,7 +82,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - uses: ./combine
+      - uses: geode-sdk/build-action/combine@main
         id: build
 
       - uses: actions/upload-artifact@v4
