@@ -1,4 +1,4 @@
-name: Test the action
+name: Build Geode Mod
 
 on:
   workflow_dispatch:
@@ -8,30 +8,9 @@ on:
 
 env:
   test-mod-path: example-mod-test
-  test-geode-nightly: false
-  # Line below makes IDEs with github actions intelisense or whatever its called in editors shut up about an unknown env variable
-  geode-sdk-type: ''
+  forced-geode-version: "5.11.1"
 
 jobs:
-  fetch-geode-version:
-    name: Get Geode Version
-    runs-on: ubuntu-latest
-    outputs:
-      geode_ver: ${{ steps.get_version.outputs.geode_version }}
-    steps:
-    - name: Get latest release tag
-      id: get_version
-      run: |
-        # Get latest Geode version
-        if [ ${{ env.test-geode-nightly }} == true ]; then
-          GEODE_VERSION=$(curl -s https://raw.githubusercontent.com/geode-sdk/geode/nightly/VERSION)
-        else
-          GEODE_VERSION=$(curl -s -H "Authorization: token ${{ secrets.GITHUB_TOKEN }}" https://api.github.com/repos/geode-sdk/geode/releases/latest | jq -r .tag_name)
-        fi
-
-        GEODE_VERSION=${GEODE_VERSION#v}
-        echo "geode_version=$GEODE_VERSION" >> $GITHUB_OUTPUT
-
   build:
     strategy:
       fail-fast: false
@@ -53,7 +32,6 @@ jobs:
 
     name: ${{ matrix.config.name }}
     runs-on: ${{ matrix.config.os }}
-    needs: ['fetch-geode-version']
 
     steps:
       - uses: actions/checkout@v4
@@ -66,27 +44,18 @@ jobs:
       - name: Modify Example Mod Files
         shell: bash
         run: |
-          # Get Geode version from the previous step
-          GEODE_VERSION="${{ needs.fetch-geode-version.outputs.geode_ver }}"
-          if [ $GEODE_VERSION == null ]; then 
-            echo "Could not get the latest version for testing"
-            exit 1;
-          fi
-
-          # Set path of mod.json file
+          GEODE_VERSION="${{ env.forced-geode-version }}"
           mod_json_path="${{ env.test-mod-path }}/mod.json"
+          mod_json=$(cat "$mod_json_path")
 
-          # Read the current mod.json content
-          mod_json=$(cat $mod_json_path)
-
-          # Replace the placeholders
+          # Força a versão 5.11.1 no mod.json do projeto
           updated_mod_json=$(echo "$mod_json" | jq \
             --arg geode_version "$GEODE_VERSION" \
-            --arg mod_id "geode.example" \
-            --arg mod_name "Example Mod" \
-            --arg mod_version "0.0.0" \
-            --arg mod_description "The example Geode mod!" \
-            --arg developer "Geode Team" \
+            --arg mod_id "seu-nome.ai-pathfinder-bot" \
+            --arg mod_name "AI Pathfinding Bot" \
+            --arg mod_version "1.0.0" \
+            --arg mod_description "Bot de pathfinding com Geode e Gemini API" \
+            --arg developer "SeuNome" \
             '.geode = $geode_version |
             .id = $mod_id |
             .name = $mod_name |
@@ -94,27 +63,15 @@ jobs:
             .description = $mod_description |
             .developer = $developer')
 
-          # Write updated_mod_json variable contents to mod.json file
-          echo "$updated_mod_json" > $mod_json_path
-
-          GEODE_SDK_TYPE="given"
-          if [ ${{ env.test-geode-nightly }} == true ]; then
-            GEODE_SDK_TYPE="nightly"
-          fi
-          
-          # Write thing to GitHub ENV
-          echo "geode-sdk-type=$GEODE_SDK_TYPE" >> $GITHUB_ENV
-
-          # Print Geode Version and if we are running nightly
-          echo "Version: $GEODE_VERSION"
-          echo "Nightly?: ${{ env.test-geode-nightly }}"
+          echo "$updated_mod_json" > "$mod_json_path"
+          echo "Forced Geode Version set to: $GEODE_VERSION"
 
       - name: Build the mod
         uses: ./
         env:
           CMAKE_POLICY_VERSION_MINIMUM: "3.5"
         with:
-          sdk: ${{ env.geode-sdk-type }}
+          sdk: ${{ env.forced-geode-version }}
           build-config: RelWithDebInfo
           path: ${{ env.test-mod-path }}
           export-pdb: true
